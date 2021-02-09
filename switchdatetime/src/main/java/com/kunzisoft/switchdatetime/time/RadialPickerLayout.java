@@ -61,8 +61,10 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
     private static final int VISIBLE_DEGREES_STEP_SIZE = 30;
     private static final int HOUR_VALUE_TO_DEGREES_STEP_SIZE = VISIBLE_DEGREES_STEP_SIZE;
     private static final int MINUTE_VALUE_TO_DEGREES_STEP_SIZE = 6;
+    private static final int SECOND_VALUE_TO_DEGREES_STEP_SIZE = 6;
     private static final int HOUR_INDEX = SwitchTimePicker.HOUR_INDEX;
     private static final int MINUTE_INDEX = SwitchTimePicker.MINUTE_INDEX;
+    private static final int SECOND_INDEX = SwitchTimePicker.SECOND_INDEX;
     private static final int AMPM_INDEX = SwitchTimePicker.AMPM_INDEX;
     private static final int ENABLE_PICKER_INDEX = SwitchTimePicker.ENABLE_PICKER_INDEX;
     private static final int AM = SwitchTimePicker.AM;
@@ -77,6 +79,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
     private boolean mTimeInitialized;
     private int mCurrentHoursOfDay;
     private int mCurrentMinutes;
+    private int mCurrentSeconds;
     private boolean mIs24HourMode;
     private boolean mHideAmPm;
     private int mCurrentItemShowing;
@@ -87,6 +90,8 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
     private TimeRadialNumbersView mMinuteTimeRadialNumbersView;
     private TimeRadialSelectorView mHourTimeRadialSelectorView;
     private TimeRadialSelectorView mMinuteTimeRadialSelectorView;
+    private TimeRadialSelectorView mSecondTimeRadialSelectorView;
+    private TimeRadialNumbersView mSecondTimeRadialNumbersView;
     private View mGrayBox;
 
     private int[] mSnapPrefer30sMap;
@@ -151,21 +156,27 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
 
         mHourTimeRadialSelectorView = new TimeRadialSelectorView(context);
         mMinuteTimeRadialSelectorView = new TimeRadialSelectorView(context);
+        mSecondTimeRadialSelectorView = new TimeRadialSelectorView(context);
         TypedArray switchSelectorColorTypedArray = getContext().obtainStyledAttributes(attrs, R.styleable.TimeRadialSelectorView);
         mHourTimeRadialSelectorView.setSelectorColor(switchSelectorColorTypedArray.getColor(R.styleable.TimeRadialSelectorView_timeSelectorColor, Color.RED));
         mMinuteTimeRadialSelectorView.setSelectorColor(switchSelectorColorTypedArray.getColor(R.styleable.TimeRadialSelectorView_timeSelectorColor, Color.RED));
+        mSecondTimeRadialSelectorView.setSelectorColor(switchSelectorColorTypedArray.getColor(R.styleable.TimeRadialSelectorView_timeSelectorColor, Color.RED));
         switchSelectorColorTypedArray.recycle();
         addView(mHourTimeRadialSelectorView);
         addView(mMinuteTimeRadialSelectorView);
+        addView(mSecondTimeRadialSelectorView);
 
         mHourTimeRadialNumbersView = new TimeRadialNumbersView(context);
         mMinuteTimeRadialNumbersView = new TimeRadialNumbersView(context);
+        mSecondTimeRadialNumbersView = new TimeRadialNumbersView(context);
         TypedArray switchTimeNumbersColorTypedArray = getContext().obtainStyledAttributes(attrs, R.styleable.TimeRadialNumbersView);
         mHourTimeRadialNumbersView.setNumbersColor(switchTimeNumbersColorTypedArray.getColor(R.styleable.TimeRadialNumbersView_timeCircularNumbersColor, Color.BLACK));
         mMinuteTimeRadialNumbersView.setNumbersColor(switchTimeNumbersColorTypedArray.getColor(R.styleable.TimeRadialNumbersView_timeCircularNumbersColor, Color.BLACK));
+        mSecondTimeRadialNumbersView.setNumbersColor(switchTimeNumbersColorTypedArray.getColor(R.styleable.TimeRadialNumbersView_timeCircularNumbersColor, Color.BLACK));
         switchTimeNumbersColorTypedArray.recycle();
         addView(mHourTimeRadialNumbersView);
         addView(mMinuteTimeRadialNumbersView);
+        addView(mSecondTimeRadialNumbersView);
 
         // Prepare mapping to snap touchable degrees to selectable degrees.
         preparePrefer30sMap();
@@ -208,7 +219,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
     /**
      * Initialize the Layout with starting values.
      */
-    public void initialize(Context context, int initialHoursOfDay, int initialMinutes,
+    public void initialize(Context context, int initialHoursOfDay, int initialMinutes, int initialSeconds,
                            boolean is24HourMode, boolean highlightSelectedAMPM, boolean vibrate) {
         if (mTimeInitialized) {
             Log.e(TAG, "Time has already been initialized.");
@@ -233,37 +244,50 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         int[] hours = {12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         int[] hours_24 = {0, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
         int[] minutes = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55};
+        int[] seconds = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55};
+
         String[] hoursTexts = new String[12];
         String[] innerHoursTexts = new String[12];
         String[] minutesTexts = new String[12];
+        String[] secondsTexts = new String[12];
+
         for (int i = 0; i < 12; i++) {
             hoursTexts[i] = is24HourMode ?
                     String.format(Locale.getDefault(), "%02d", hours_24[i]) : String.format(Locale.getDefault(), "%d", hours[i]);
             innerHoursTexts[i] = String.format(Locale.getDefault(), "%d", hours[i]);
             minutesTexts[i] = String.format(Locale.getDefault(), "%02d", minutes[i]);
+            secondsTexts[i] = String.format(Locale.getDefault(), "%02d", seconds[i]);
         }
         mHourTimeRadialNumbersView.initialize(res,
                 hoursTexts, (is24HourMode ? innerHoursTexts : null), mHideAmPm, true);
         mHourTimeRadialNumbersView.invalidate();
         mMinuteTimeRadialNumbersView.initialize(res, minutesTexts, null, mHideAmPm, false);
         mMinuteTimeRadialNumbersView.invalidate();
+        mSecondTimeRadialNumbersView.initialize(res, secondsTexts, null, mHideAmPm, false);
+        mSecondTimeRadialNumbersView.invalidate();
 
         // Initialize the currently-selected hour and minute.
         setValueForItem(HOUR_INDEX, initialHoursOfDay);
         setValueForItem(MINUTE_INDEX, initialMinutes);
+        setValueForItem(SECOND_INDEX, initialSeconds);
+
         int hourDegrees = (initialHoursOfDay % 12) * HOUR_VALUE_TO_DEGREES_STEP_SIZE;
         mHourTimeRadialSelectorView.initialize(context, mHideAmPm, is24HourMode, true,
                 hourDegrees, isHourInnerCircle(initialHoursOfDay));
         int minuteDegrees = initialMinutes * MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
         mMinuteTimeRadialSelectorView.initialize(context, mHideAmPm, false, false,
                 minuteDegrees, false);
+        int secondDegrees = initialSeconds * SECOND_VALUE_TO_DEGREES_STEP_SIZE;
+        mSecondTimeRadialSelectorView.initialize(context, mHideAmPm, false, false,
+                secondDegrees, false);
 
         mTimeInitialized = true;
     }
 
-    public void setTime(int hours, int minutes) {
+    public void setTime(int hours, int minutes, int seconds) {
         setItem(HOUR_INDEX, hours);
         setItem(MINUTE_INDEX, minutes);
+        setItem(SECOND_INDEX, seconds);
     }
 
     public void setVibrate(boolean vibrate) {
@@ -284,6 +308,11 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             int minuteDegrees = value * MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
             mMinuteTimeRadialSelectorView.setSelection(minuteDegrees, false, false);
             mMinuteTimeRadialSelectorView.invalidate();
+        } else if (index == SECOND_INDEX) {
+            setValueForItem(SECOND_INDEX, value);
+            int secondDegrees = value * SECOND_VALUE_TO_DEGREES_STEP_SIZE;
+            mSecondTimeRadialSelectorView.setSelection(secondDegrees, false, false);
+            mSecondTimeRadialSelectorView.invalidate();
         }
     }
 
@@ -305,6 +334,10 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         return mCurrentMinutes;
     }
 
+    public int getSeconds() {
+        return mCurrentMinutes;
+    }
+
     /**
      * If the hours are showing, return the current hour. If the minutes are showing, return the
      * current minute.
@@ -315,6 +348,8 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             return mCurrentHoursOfDay;
         } else if (currentIndex == MINUTE_INDEX) {
             return mCurrentMinutes;
+        } else if (currentIndex == SECOND_INDEX) {
+            return mCurrentSeconds;
         } else {
             return -1;
         }
@@ -337,6 +372,8 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             mCurrentHoursOfDay = value;
         } else if (index == MINUTE_INDEX) {
             mCurrentMinutes = value;
+        } else if (index == SECOND_INDEX) {
+            mCurrentSeconds = value;
         } else if (index == AMPM_INDEX) {
             if (value == AM) {
                 mCurrentHoursOfDay = mCurrentHoursOfDay % 12;
@@ -478,7 +515,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         int currentShowing = getCurrentItemShowing();
 
         int stepSize;
-        boolean allowFineGrained = !forceToVisibleValue && (currentShowing == MINUTE_INDEX);
+        boolean allowFineGrained = !forceToVisibleValue && (currentShowing == MINUTE_INDEX || currentShowing == SECOND_INDEX);
         if (allowFineGrained) {
             degrees = snapPrefer30s(degrees);
         } else {
@@ -489,6 +526,9 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         if (currentShowing == HOUR_INDEX) {
             timeRadialSelectorView = mHourTimeRadialSelectorView;
             stepSize = HOUR_VALUE_TO_DEGREES_STEP_SIZE;
+        } else if (currentShowing == SECOND_INDEX) {
+            timeRadialSelectorView = mSecondTimeRadialSelectorView;
+            stepSize = SECOND_VALUE_TO_DEGREES_STEP_SIZE;
         } else {
             timeRadialSelectorView = mMinuteTimeRadialSelectorView;
             stepSize = MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
@@ -508,6 +548,8 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 degrees = 360;
             }
         } else if (degrees == 360 && currentShowing == MINUTE_INDEX) {
+            degrees = 0;
+        } else if (degrees == 360 && currentShowing == SECOND_INDEX) {
             degrees = 0;
         }
 
@@ -540,6 +582,9 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
         } else if (currentItem == MINUTE_INDEX) {
             return mMinuteTimeRadialSelectorView.getDegreesFromCoords(
                     pointX, pointY, forceLegal, isInnerCircle);
+        } else if (currentItem == SECOND_INDEX) {
+            return mSecondTimeRadialSelectorView.getDegreesFromCoords(
+                    pointX, pointY, forceLegal, isInnerCircle);
         } else {
             return -1;
         }
@@ -549,7 +594,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
      * Get the item (hours or minutes) that is currently showing.
      */
     public int getCurrentItemShowing() {
-        if (mCurrentItemShowing != HOUR_INDEX && mCurrentItemShowing != MINUTE_INDEX) {
+        if (mCurrentItemShowing != HOUR_INDEX && mCurrentItemShowing != MINUTE_INDEX && mCurrentItemShowing != SECOND_INDEX) {
             Log.e(TAG, "Current item showing was unfortunately set to " + mCurrentItemShowing);
             return -1;
         }
@@ -558,52 +603,24 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
 
     /**
      * Set either minutes or hours as showing.
-     *
-     * @param animate True to animate the transition, false to show with no animation.
      */
     public void setCurrentItemShowing(int index, boolean animate) {
-        if (index != HOUR_INDEX && index != MINUTE_INDEX) {
+        if (index != HOUR_INDEX && index != MINUTE_INDEX && index != SECOND_INDEX) {
             Log.e(TAG, "TimePicker does not support view at index " + index);
             return;
         }
 
-        //NineOldDroids does not work in this case due to denepency recursion.
-        animate = animate && Build.VERSION.SDK_INT >= 14;
-
-        int lastIndex = getCurrentItemShowing();
         mCurrentItemShowing = index;
 
-        if (animate && (index != lastIndex)) {
-            List<Animator> animators = new ArrayList<>();
-            switch(index) {
-                case MINUTE_INDEX :
-                    animators.add(mHourTimeRadialNumbersView.getDisappearAnimator());
-                    animators.add(mHourTimeRadialSelectorView.getDisappearAnimator());
-                    animators.add(mMinuteTimeRadialNumbersView.getReappearAnimator());
-                    animators.add(mMinuteTimeRadialSelectorView.getReappearAnimator());
-                    break;
-                case HOUR_INDEX :
-                    animators.add(mHourTimeRadialNumbersView.getReappearAnimator());
-                    animators.add(mHourTimeRadialSelectorView.getReappearAnimator());
-                    animators.add(mMinuteTimeRadialNumbersView.getDisappearAnimator());
-                    animators.add(mMinuteTimeRadialSelectorView.getDisappearAnimator());
-                    break;
-            }
-            if (mTransition != null && mTransition.isRunning()) {
-                mTransition.end();
-            }
-            mTransition = new AnimatorSet();
-            mTransition.playTogether(animators);
-            mTransition.start();
-        } else {
-            float hourAlpha = (index == HOUR_INDEX) ? 1 : 0;
-            float minuteAlpha = (index == MINUTE_INDEX) ? 1 : 0;
-            mHourTimeRadialNumbersView.setAlpha(hourAlpha);
-            mHourTimeRadialSelectorView.setAlpha(hourAlpha);
-            mMinuteTimeRadialNumbersView.setAlpha(minuteAlpha);
-            mMinuteTimeRadialSelectorView.setAlpha(minuteAlpha);
-        }
-
+        float hourAlpha = (index == HOUR_INDEX) ? 1 : 0;
+        float minuteAlpha = (index == MINUTE_INDEX) ? 1 : 0;
+        float secondAlpha = (index == SECOND_INDEX) ? 1 : 0;
+        mHourTimeRadialNumbersView.setAlpha(hourAlpha);
+        mHourTimeRadialSelectorView.setAlpha(hourAlpha);
+        mMinuteTimeRadialNumbersView.setAlpha(minuteAlpha);
+        mMinuteTimeRadialSelectorView.setAlpha(minuteAlpha);
+        mSecondTimeRadialSelectorView.setAlpha(secondAlpha);
+        mSecondTimeRadialNumbersView.setAlpha(secondAlpha);
     }
 
     @Override
@@ -809,7 +826,7 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
             super.onInitializeAccessibilityNodeInfo(info);
             info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
             info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
-        } else if(Build.VERSION.SDK_INT >= 16) {
+        } else if (Build.VERSION.SDK_INT >= 16) {
             super.onInitializeAccessibilityNodeInfo(info);
             info.addAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
             info.addAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
@@ -865,6 +882,8 @@ public class RadialPickerLayout extends FrameLayout implements OnTouchListener {
                 value %= 12;
             } else if (currentItemShowing == MINUTE_INDEX) {
                 stepSize = MINUTE_VALUE_TO_DEGREES_STEP_SIZE;
+            } else if (currentItemShowing == SECOND_INDEX) {
+                stepSize = SECOND_VALUE_TO_DEGREES_STEP_SIZE;
             }
 
             int degrees = value * stepSize;

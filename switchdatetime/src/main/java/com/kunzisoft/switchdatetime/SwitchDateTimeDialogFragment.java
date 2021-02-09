@@ -252,9 +252,10 @@ public class SwitchDateTimeDialogFragment extends DialogFragment {
         // Construct TimePicker
         SwitchTimePicker.OnTimeSelectedListener onTimeSelectedListener = new SwitchTimePicker.OnTimeSelectedListener() {
             @Override
-            public void onTimeSelected(int hourOfDayTime, int minuteTime) {
+            public void onTimeSelected(int hourOfDayTime, int minuteTime, int secondTime) {
                 dateTimeCalendar.set(Calendar.HOUR_OF_DAY, hourOfDayTime);
                 dateTimeCalendar.set(Calendar.MINUTE, minuteTime);
+                dateTimeCalendar.set(Calendar.SECOND, secondTime);
             }
         };
         // Init time with saved elements
@@ -263,6 +264,7 @@ public class SwitchDateTimeDialogFragment extends DialogFragment {
         timePicker.setHighlightAMPMSelection(highlightAMPMSelection);
         timePicker.setHourOfDay(dateTimeCalendar.get(Calendar.HOUR_OF_DAY));
         timePicker.setMinute(dateTimeCalendar.get(Calendar.MINUTE));
+        timePicker.setSecond(dateTimeCalendar.get(Calendar.SECOND));
         timePicker.onCreateView(dateTimeLayout, savedInstanceState);
         timePicker.setOnClickTimeListener(onTimeClickListener);
 
