@@ -16,7 +16,6 @@
   -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/time_label_width"
-    android:background="#000"
     android:layout_height="@dimen/time_label_height">
 
     <com.kunzisoft.switchdatetime.time.widget.AccessibleTextView
