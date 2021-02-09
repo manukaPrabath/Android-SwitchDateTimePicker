@@ -17,6 +17,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/time_label_width"
     android:layout_height="@dimen/time_label_height"
+    android:background="#000"
     android:layout_gravity="center">
 
     <TextView
@@ -49,6 +50,38 @@
         android:layout_centerVertical="true"
         style="@style/Theme.SwitchDateTime.TimeLabelText" />
 
+    <LinearLayout
+        android:layout_toRightOf="@+id/minutes"
+        android:layout_toEndOf="@+id/minutes"
+        android:id="@+id/seconds_layout"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@id/separator_seconds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_separator"
+            android:layout_centerVertical="true"
+            android:paddingLeft="@dimen/separator_vertical_padding"
+            android:paddingRight="@dimen/separator_vertical_padding"
+            style="@style/Theme.SwitchDateTime.TimeLabelText" />
+
+        <TextView
+            android:id="@+id/seconds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_placeholder"
+            android:layout_toRightOf="@+id/separator_seconds"
+            android:layout_toEndOf="@+id/separator_seconds"
+            android:layout_centerVertical="true"
+            style="@style/Theme.SwitchDateTime.TimeLabelText" />
+
+    </LinearLayout>
+
+
+
     <com.kunzisoft.switchdatetime.time.widget.AccessibleTextView
         android:id="@+id/ampm_hitspace"
         android:layout_width="@dimen/ampm_label_size"
@@ -57,13 +90,14 @@
         android:layout_alignStart="@+id/ampm_label"
         android:layout_alignEnd="@+id/ampm_label" />
     <TextView
+        android:layout_toRightOf="@+id/seconds_layout"
+        android:layout_toEndOf="@+id/seconds_layout"
         android:id="@+id/ampm_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/time_placeholder"
         android:paddingLeft="@dimen/ampm_left_padding"
         android:paddingRight="@dimen/ampm_left_padding"
-        android:layout_toEndOf="@+id/minutes"
         android:layout_alignBaseline="@+id/separator"
         style="@style/Theme.SwitchDateTime.TimeLabelAmPm" />
 </RelativeLayout>
