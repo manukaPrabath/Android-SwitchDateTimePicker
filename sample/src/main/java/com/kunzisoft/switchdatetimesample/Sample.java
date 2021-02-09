@@ -57,7 +57,7 @@ public class Sample extends AppCompatActivity {
         dateTimeFragment.setTimeZone(TimeZone.getDefault());
 
         // Init format
-        final SimpleDateFormat myDateFormat = new SimpleDateFormat("d MMM yyyy HH:mm", java.util.Locale.getDefault());
+        final SimpleDateFormat myDateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss", java.util.Locale.getDefault());
         // Assign unmodifiable values
         dateTimeFragment.set24HoursMode(false);
         dateTimeFragment.setHighlightAMPMSelection(false);
@@ -97,7 +97,7 @@ public class Sample extends AppCompatActivity {
             public void onClick(View view) {
                 // Re-init each time
                 dateTimeFragment.startAtCalendarView();
-                dateTimeFragment.setDefaultDateTime(new GregorianCalendar(2017, Calendar.MARCH, 4, 15, 20).getTime());
+                dateTimeFragment.setDefaultDateTime(new Date());
                 dateTimeFragment.show(getSupportFragmentManager(), TAG_DATETIME_FRAGMENT);
             }
         });
